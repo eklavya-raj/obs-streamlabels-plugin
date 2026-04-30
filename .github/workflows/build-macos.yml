@@ -2,39 +2,39 @@ name: Build macOS
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
   workflow_dispatch:
 
 jobs:
   build-macos:
     runs-on: macos-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Install dependencies
-      run: |
-        brew install cmake libcurl cjson libwebsockets
-        
-    - name: Build plugin
-      run: |
-        mkdir build && cd build
-        cmake -DCMAKE_BUILD_TYPE=Release ..
-        make -j$(sysctl -n hw.ncpu)
-        
-    - name: Create package
-      run: |
-        cd build
-        mkdir -p obs-streamlabels-plugin
-        cp libobs-streamlabels.dylib obs-streamlabels-plugin/
-        cp -r ../src/*.h obs-streamlabels-plugin/ 2>/dev/null || true
-        
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: obs-streamlabels-plugin-macos
-        path: build/obs-streamlabels-plugin/
-        retention-days: 30
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          brew install cmake cjson libwebsockets
+
+      - name: Build plugin
+        run: |
+          mkdir build && cd build
+          cmake -DCMAKE_BUILD_TYPE=Release ..
+          make -j$(sysctl -n hw.ncpu)
+
+      - name: Create package
+        run: |
+          cd build
+          mkdir -p obs-streamlabels-plugin
+          cp libobs-streamlabels.dylib obs-streamlabels-plugin/
+          cp -r ../src/*.h obs-streamlabels-plugin/ 2>/dev/null || true
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: obs-streamlabels-plugin-macos
+          path: build/obs-streamlabels-plugin/
+          retention-days: 30
