@@ -26,9 +26,26 @@ jobs:
 
       - name: Fix OBS CMake for CI
         run: |
-          # Patch the problematic cmake file to bypass SDK version check on CI
-          sed -i '' 's/string(REGEX MATCH "^([0-9]+)" MACOS_MAJOR_VERSION "${MACOS_SDK_VERSION}")/set(MACOS_MAJOR_VERSION 14)/' /tmp/obs-studio/cmake/macos/compilerconfig.cmake || true
-          sed -i '' 's/if(NOT MACOS_MAJOR_VERSION OR MACOS_MAJOR_VERSION LESS 13)/if(FALSE)/' /tmp/obs-studio/cmake/macos/compilerconfig.cmake || true
+          python3 -c "
+          import re
+          with open('/tmp/obs-studio/cmake/macos/compilerconfig.cmake', 'r') as f:
+            content = f.read()
+          # Replace the regex match line
+          content = re.sub(
+            r'string\(REGEX MATCH \"\\^\\([0-9]+\\)\" MACOS_MAJOR_VERSION \"\\\$\\{MACOS_SDK_VERSION\\}\"\)',
+            'set(MACOS_MAJOR_VERSION 14)',
+            content
+          )
+          # Replace the version check
+          content = re.sub(
+            r'if\(NOT MACOS_MAJOR_VERSION OR MACOS_MAJOR_VERSION LESS 13\)',
+            'if(FALSE)',
+            content
+          )
+          with open('/tmp/obs-studio/cmake/macos/compilerconfig.cmake', 'w') as f:
+            f.write(content)
+          print('Patched compilerconfig.cmake')
+          "
 
       - name: Build OBS Studio
         env:
