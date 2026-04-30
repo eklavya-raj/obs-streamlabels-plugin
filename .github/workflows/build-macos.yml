@@ -17,12 +17,24 @@ jobs:
 
       - name: Install dependencies
         run: |
-          brew install cmake cjson libwebsockets obs
+          brew install cmake cjson libwebsockets ffmpeg jansson mbedtls
+
+      - name: Clone OBS Studio
+        run: |
+          cd /tmp
+          git clone --recursive --depth 1 --branch 30.0.0 https://github.com/obsproject/obs-studio.git
+
+      - name: Build OBS Studio
+        run: |
+          cd /tmp/obs-studio
+          mkdir build && cd build
+          cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_UI=OFF -DENABLE_SCRIPTING=OFF ..
+          make -j$(sysctl -n hw.ncpu) libobs obs-frontend-api
 
       - name: Build plugin
         run: |
           mkdir build && cd build
-          cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(brew --prefix obs) ..
+          cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/tmp/obs-studio/build ..
           make -j$(sysctl -n hw.ncpu)
 
       - name: Create package
