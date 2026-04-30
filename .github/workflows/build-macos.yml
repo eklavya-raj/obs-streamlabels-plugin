@@ -26,26 +26,13 @@ jobs:
 
       - name: Fix OBS CMake for CI
         run: |
-          python3 -c "
-          import re
-          with open('/tmp/obs-studio/cmake/macos/compilerconfig.cmake', 'r') as f:
-            content = f.read()
-          # Replace the regex match line
-          content = re.sub(
-            r'string\(REGEX MATCH \"\\^\\([0-9]+\\)\" MACOS_MAJOR_VERSION \"\\\$\\{MACOS_SDK_VERSION\\}\"\)',
-            'set(MACOS_MAJOR_VERSION 14)',
-            content
-          )
-          # Replace the version check
-          content = re.sub(
-            r'if\(NOT MACOS_MAJOR_VERSION OR MACOS_MAJOR_VERSION LESS 13\)',
-            'if(FALSE)',
-            content
-          )
-          with open('/tmp/obs-studio/cmake/macos/compilerconfig.cmake', 'w') as f:
-            f.write(content)
-          print('Patched compilerconfig.cmake')
-          "
+          cat > /tmp/obs-studio/cmake/macos/compilerconfig.cmake << 'EOF'
+          # Minimal compiler config for CI - bypasses SDK version checks
+          set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "Build architectures for macOS" FORCE)
+          set(CMAKE_OSX_DEPLOYMENT_TARGET "13.0" CACHE STRING "Minimum macOS deployment version" FORCE)
+          set(MACOS_MAJOR_VERSION 14)
+          EOF
+          echo "Replaced compilerconfig.cmake with CI-compatible version"
 
       - name: Build OBS Studio
         env:
