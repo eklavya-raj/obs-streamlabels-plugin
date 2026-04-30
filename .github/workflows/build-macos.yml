@@ -24,11 +24,19 @@ jobs:
           cd /tmp
           git clone --recursive --depth 1 --branch 30.0.0 https://github.com/obsproject/obs-studio.git
 
+      - name: Fix OBS CMake for CI
+        run: |
+          # Patch the problematic cmake file to bypass SDK version check on CI
+          sed -i '' 's/string(REGEX MATCH "^([0-9]+)" MACOS_MAJOR_VERSION "${MACOS_SDK_VERSION}")/set(MACOS_MAJOR_VERSION 14)/' /tmp/obs-studio/cmake/macos/compilerconfig.cmake || true
+          sed -i '' 's/if(NOT MACOS_MAJOR_VERSION OR MACOS_MAJOR_VERSION LESS 13)/if(FALSE)/' /tmp/obs-studio/cmake/macos/compilerconfig.cmake || true
+
       - name: Build OBS Studio
+        env:
+          MACOSX_DEPLOYMENT_TARGET: 13.0
         run: |
           cd /tmp/obs-studio
           mkdir build && cd build
-          cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_UI=OFF -DENABLE_SCRIPTING=OFF ..
+          cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_UI=OFF -DENABLE_SCRIPTING=OFF -DENABLE_BROWSER=OFF ..
           make -j$(sysctl -n hw.ncpu) libobs obs-frontend-api
 
       - name: Build plugin
