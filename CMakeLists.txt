@@ -41,7 +41,9 @@ else()
 endif()
 
 find_package(CURL REQUIRED)
-find_package(cJSON REQUIRED)
+if(NOT APPLE)
+    find_package(cJSON REQUIRED)
+endif()
 find_package(PkgConfig)
 if(PKG_CONFIG_FOUND)
     pkg_check_modules(LIBWEBSOCKETS REQUIRED libwebsockets)
@@ -104,11 +106,12 @@ if(APPLE)
         target_link_libraries(${PROJECT_NAME} PRIVATE ${OPENSSL_SSL} ${OPENSSL_CRYPTO})
     endif()
 
-    # cJSON using pkg-config
-    pkg_check_modules(CJSON REQUIRED cjson)
-    if(CJSON_FOUND)
-        target_include_directories(${PROJECT_NAME} PRIVATE ${CJSON_INCLUDE_DIRS})
-        target_link_libraries(${PROJECT_NAME} PRIVATE ${CJSON_LIBRARIES})
+    # cJSON
+    find_path(CJSON_INCLUDE_DIR cJSON.h PATHS /opt/homebrew/opt/cjson/include /usr/local/opt/cjson/include)
+    find_library(CJSON_LIBRARY cjson PATHS /opt/homebrew/opt/cjson/lib /usr/local/opt/cjson/lib)
+    if(CJSON_INCLUDE_DIR AND CJSON_LIBRARY)
+        target_include_directories(${PROJECT_NAME} PRIVATE ${CJSON_INCLUDE_DIR})
+        target_link_libraries(${PROJECT_NAME} PRIVATE ${CJSON_LIBRARY})
     endif()
 endif()
 
