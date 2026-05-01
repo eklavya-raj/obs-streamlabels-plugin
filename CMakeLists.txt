@@ -25,8 +25,21 @@ if(NOT DEFINED OBS_FRONTEND_LIB)
     endif()
 endif()
 
-# Find required packages
-find_package(LibObs REQUIRED)
+# Find OBS libraries
+if(DEFINED OBS_BUILD_DIR)
+    message(STATUS "Using OBS build directory: ${OBS_BUILD_DIR}")
+    set(LIBOBS_INCLUDE_DIRS
+        ${OBS_BUILD_DIR}/../libobs
+        ${OBS_BUILD_DIR}/../UI/obs-frontend-api
+    )
+    set(LIBOBS_LIBRARIES
+        ${OBS_BUILD_DIR}/libobs.framework/libobs
+        ${OBS_BUILD_DIR}/UI/obs-frontend-api/libobs-frontend-api.dylib
+    )
+else()
+    find_package(LibObs REQUIRED)
+endif()
+
 find_package(CURL REQUIRED)
 find_package(cJSON REQUIRED)
 find_package(PkgConfig)

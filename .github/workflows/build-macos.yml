@@ -46,7 +46,7 @@ jobs:
       - name: Build plugin
         run: |
           mkdir build && cd build
-          cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/tmp/obs-studio/build ..
+          cmake -DCMAKE_BUILD_TYPE=Release -DOBS_BUILD_DIR=/tmp/obs-studio/build ..
           make -j$(sysctl -n hw.ncpu)
 
       - name: Create package
