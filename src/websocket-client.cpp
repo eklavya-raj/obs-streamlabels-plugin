@@ -1,8 +1,10 @@
 #include "websocket-client.h"
-#include <obs.h>
 #include <libwebsockets.h>
 #include <string.h>
 #include <stdlib.h>
+#include <pthread.h>
+#include <thread>
+#include <chrono>
 
 #define STREAMLABS_WS_URL "aws-io.streamlabs.com"
 #define STREAMLABS_WS_PATH "/"
@@ -75,7 +77,7 @@ static void *websocket_thread(void *data)
         
         pthread_mutex_unlock(&client->mutex);
         
-        os_sleep_ms(10);
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
     
     return nullptr;

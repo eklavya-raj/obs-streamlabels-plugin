@@ -1,8 +1,10 @@
 #include "train-logic.h"
-#include <obs.h>
-#include <util/platform.h>
 #include <string.h>
 #include <stdlib.h>
+#include <pthread.h>
+#include <obs.h>
+#include <thread>
+#include <chrono>
 #include <time.h>
 
 #define DEFAULT_TRAIN_DURATION 300 // 5 minutes
@@ -40,7 +42,7 @@ static void *timer_thread(void *data)
         }
         
         pthread_mutex_unlock(&logic->mutex);
-        os_sleep_ms(1000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
     
     return nullptr;

@@ -107,11 +107,36 @@ if(APPLE)
     endif()
 
     # cJSON
-    find_path(CJSON_INCLUDE_DIR cJSON.h PATHS /opt/homebrew/opt/cjson/include /usr/local/opt/cjson/include)
-    find_library(CJSON_LIBRARY cjson PATHS /opt/homebrew/opt/cjson/lib /usr/local/opt/cjson/lib)
+    find_path(CJSON_INCLUDE_DIR cJSON.h PATHS
+        /opt/homebrew/include
+        /opt/homebrew/include/cjson
+        /opt/homebrew/opt/cjson/include
+        /usr/local/include
+        /usr/local/include/cjson
+        /usr/local/opt/cjson/include
+    )
+    find_library(CJSON_LIBRARY cjson PATHS
+        /opt/homebrew/lib
+        /opt/homebrew/opt/cjson/lib
+        /usr/local/lib
+        /usr/local/opt/cjson/lib
+    )
     if(CJSON_INCLUDE_DIR AND CJSON_LIBRARY)
         target_include_directories(${PROJECT_NAME} PRIVATE ${CJSON_INCLUDE_DIR})
         target_link_libraries(${PROJECT_NAME} PRIVATE ${CJSON_LIBRARY})
+    else()
+        # Fallback: add common Homebrew paths directly
+        target_include_directories(${PROJECT_NAME} PRIVATE
+            /opt/homebrew/include
+            /opt/homebrew/include/cjson
+            /usr/local/include
+            /usr/local/include/cjson
+        )
+        target_link_directories(${PROJECT_NAME} PRIVATE
+            /opt/homebrew/lib
+            /usr/local/lib
+        )
+        target_link_libraries(${PROJECT_NAME} PRIVATE cjson)
     endif()
 endif()
 
