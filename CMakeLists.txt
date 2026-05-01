@@ -92,7 +92,7 @@ if(NOT APPLE)
 endif()
 find_package(PkgConfig)
 if(PKG_CONFIG_FOUND)
-    pkg_check_modules(LIBWEBSOCKETS REQUIRED libwebsockets)
+    pkg_check_modules(LIBWEBSOCKETS REQUIRED libwebsockets IMPORTED_TARGET)
 endif()
 
 # Platform-specific settings
@@ -191,7 +191,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     ${LIBOBS_LIBRARIES}
     CURL::libcurl
     pthread
-    ${LIBWEBSOCKETS_LIBRARIES}
+    PkgConfig::LIBWEBSOCKETS
 )
 
 # Add cjson only if not on macOS (handled by pkg-config above)
