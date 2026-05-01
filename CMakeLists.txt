@@ -91,11 +91,24 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${LIBWEBSOCKETS_INCLUDE_DIRS}
 )
 
-# macOS: Add OpenSSL include path for libwebsockets
+# macOS: Add OpenSSL and cJSON include and library paths
 if(OS_MACOS)
+    # OpenSSL for libwebsockets
     find_path(OPENSSL_INCLUDE_DIR openssl/ssl.h PATHS /opt/homebrew/opt/openssl/include /usr/local/opt/openssl/include)
+    find_library(OPENSSL_SSL libssl PATHS /opt/homebrew/opt/openssl/lib /usr/local/opt/openssl/lib)
+    find_library(OPENSSL_CRYPTO libcrypto PATHS /opt/homebrew/opt/openssl/lib /usr/local/opt/openssl/lib)
     if(OPENSSL_INCLUDE_DIR)
         target_include_directories(${PROJECT_NAME} PRIVATE ${OPENSSL_INCLUDE_DIR})
+    endif()
+    if(OPENSSL_SSL AND OPENSSL_CRYPTO)
+        target_link_libraries(${PROJECT_NAME} PRIVATE ${OPENSSL_SSL} ${OPENSSL_CRYPTO})
+    endif()
+
+    # cJSON using pkg-config
+    pkg_check_modules(CJSON REQUIRED cjson)
+    if(CJSON_FOUND)
+        target_include_directories(${PROJECT_NAME} PRIVATE ${CJSON_INCLUDE_DIRS})
+        target_link_libraries(${PROJECT_NAME} PRIVATE ${CJSON_LIBRARIES})
     endif()
 endif()
 
@@ -103,10 +116,14 @@ endif()
 target_link_libraries(${PROJECT_NAME} PRIVATE
     ${LIBOBS_LIBRARIES}
     CURL::libcurl
-    cjson
     pthread
     ${LIBWEBSOCKETS_LIBRARIES}
 )
+
+# Add cjson only if not on macOS (handled by pkg-config above)
+if(NOT OS_MACOS)
+    target_link_libraries(${PROJECT_NAME} PRIVATE cjson)
+endif()
 
 if(OS_WINDOWS)
     target_link_libraries(${PROJECT_NAME} PRIVATE
