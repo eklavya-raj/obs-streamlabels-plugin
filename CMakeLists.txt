@@ -30,6 +30,7 @@ if(DEFINED OBS_BUILD_DIR)
     message(STATUS "Using OBS build directory: ${OBS_BUILD_DIR}")
     set(LIBOBS_INCLUDE_DIRS
         ${OBS_BUILD_DIR}/../libobs
+        ${OBS_BUILD_DIR}/../UI/obs-frontend-api
     )
     # Search for libobs library in multiple possible locations
     set(OBS_LIB_CANDIDATES
