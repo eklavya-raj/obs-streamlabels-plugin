@@ -60,14 +60,14 @@ jobs:
           PLUGIN_NAME="obs-streamlabels"
           BUNDLE="${PLUGIN_NAME}.plugin"
           mkdir -p "${BUNDLE}/Contents/MacOS"
-          mkdir -p "${BUNDLE}/Contents/Resources/data/locale"
+          mkdir -p "${BUNDLE}/data/locale"
 
           # Copy the built dylib
           cp "lib${PLUGIN_NAME}.dylib" "${BUNDLE}/Contents/MacOS/"
 
-          # Copy locale data if it exists
+          # Copy locale data to bundle root (where obs_module_file() looks)
           if [ -d "../data/locale" ]; then
-            cp -r ../data/locale/* "${BUNDLE}/Contents/Resources/data/locale/" 2>/dev/null || true
+            cp -r ../data/locale/* "${BUNDLE}/data/locale/" 2>/dev/null || true
           fi
 
           # Create Info.plist
@@ -114,13 +114,16 @@ jobs:
           BUNDLE="${PLUGIN_NAME}.plugin"
           DMG_NAME="${PLUGIN_NAME}-macos"
 
-          # Create ZIP that preserves the .plugin bundle directory
-          zip -r "${DMG_NAME}.zip" "${BUNDLE}"
+          # Create ZIP that preserves the .plugin bundle directory and symlinks
+          zip -r -y "${DMG_NAME}.zip" "${BUNDLE}"
           echo "Created ${DMG_NAME}.zip"
 
           # Create staging directory for DMG contents
           mkdir -p "dmg-staging"
-          cp -R "${BUNDLE}" "dmg-staging/"
+          cp -a "${BUNDLE}" "dmg-staging/"
+
+          # Re-sign the copied bundle (cp can strip extended attrs/signatures)
+          codesign --sign - --force --deep "dmg-staging/${BUNDLE}"
 
           # Create a symlink to the standard OBS plugins folder for user convenience
           ln -s "${HOME}/Library/Application Support/obs-studio/plugins" "dmg-staging/OBS Plugins Folder"
