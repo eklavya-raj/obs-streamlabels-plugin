@@ -20,6 +20,8 @@ static const char *streamlabel_source_get_name(void *type_data)
     return STREAMLABEL_SOURCE_NAME;
 }
 
+static void streamlabel_source_update(void *data, obs_data_t *settings);
+
 static void *streamlabel_source_create(obs_data_t *settings, obs_source_t *source)
 {
     streamlabel_source *context = (streamlabel_source *)bzalloc(sizeof(streamlabel_source));

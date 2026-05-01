@@ -18,7 +18,7 @@ endif()
 if(NOT DEFINED OBS_FRONTEND_LIB)
     if(OS_WINDOWS)
         set(OBS_FRONTEND_LIB "obs-frontend-api" CACHE STRING "OBS frontend library")
-    elseif(OS_MACOS)
+    elseif(APPLE)
         set(OBS_FRONTEND_LIB "OBS" CACHE STRING "OBS frontend library")
     else()
         set(OBS_FRONTEND_LIB "obs-frontend-api" CACHE STRING "OBS frontend library")
@@ -51,7 +51,7 @@ endif()
 if(OS_WINDOWS)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     set(PLATFORM_SOURCES)
-elseif(OS_MACOS)
+elseif(APPLE)
     set(PLATFORM_SOURCES)
 elseif(OS_LINUX)
     set(PLATFORM_SOURCES)
@@ -92,7 +92,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 )
 
 # macOS: Add OpenSSL and cJSON include and library paths
-if(OS_MACOS)
+if(APPLE)
     # OpenSSL for libwebsockets
     find_path(OPENSSL_INCLUDE_DIR openssl/ssl.h PATHS /opt/homebrew/opt/openssl/include /usr/local/opt/openssl/include)
     find_library(OPENSSL_SSL libssl PATHS /opt/homebrew/opt/openssl/lib /usr/local/opt/openssl/lib)
@@ -121,7 +121,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 )
 
 # Add cjson only if not on macOS (handled by pkg-config above)
-if(NOT OS_MACOS)
+if(NOT APPLE)
     target_link_libraries(${PROJECT_NAME} PRIVATE cjson)
 endif()
 
@@ -130,7 +130,7 @@ if(OS_WINDOWS)
         ws2_32
         crypt32
     )
-elseif(OS_MACOS)
+elseif(APPLE)
     target_link_libraries(${PROJECT_NAME} PRIVATE
         "-framework CoreFoundation"
         "-framework CoreGraphics"
