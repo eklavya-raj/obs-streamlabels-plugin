@@ -44,9 +44,14 @@ jobs:
           make -j$(sysctl -n hw.ncpu) libobs obs-frontend-api
 
       - name: Build plugin
+        env:
+          MACOSX_DEPLOYMENT_TARGET: 13.0
         run: |
           mkdir build && cd build
-          cmake -DCMAKE_BUILD_TYPE=Release -DOBS_BUILD_DIR=/tmp/obs-studio/build ..
+          cmake -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
+                -DCMAKE_OSX_DEPLOYMENT_TARGET="13.0" \
+                -DOBS_BUILD_DIR=/tmp/obs-studio/build ..
           make -j$(sysctl -n hw.ncpu)
 
       - name: Create .plugin bundle
@@ -95,22 +100,30 @@ jobs:
           </plist>
           EOF
 
+          # Ad-hoc code sign the bundle (required for macOS to load .plugin bundles)
+          codesign --sign - --force --deep "${BUNDLE}"
+
           echo "Created ${BUNDLE}"
           ls -la "${BUNDLE}/Contents/MacOS/"
+          codesign -dvv "${BUNDLE}"
 
-      - name: Create DMG
+      - name: Create ZIP and DMG
         run: |
           cd build
           PLUGIN_NAME="obs-streamlabels"
           BUNDLE="${PLUGIN_NAME}.plugin"
           DMG_NAME="${PLUGIN_NAME}-macos"
 
+          # Create ZIP that preserves the .plugin bundle directory
+          zip -r "${DMG_NAME}.zip" "${BUNDLE}"
+          echo "Created ${DMG_NAME}.zip"
+
           # Create staging directory for DMG contents
           mkdir -p "dmg-staging"
           cp -R "${BUNDLE}" "dmg-staging/"
 
           # Create a symlink to the standard OBS plugins folder for user convenience
-          ln -s "~/Library/Application Support/obs-studio/plugins" "dmg-staging/OBS Plugins Folder" 2>/dev/null || true
+          ln -s "${HOME}/Library/Application Support/obs-studio/plugins" "dmg-staging/OBS Plugins Folder"
 
           # Create the DMG
           hdiutil create -volname "OBS Stream Labels Plugin" -srcfolder "dmg-staging" -ov -format UDZO "${DMG_NAME}.dmg"
@@ -118,14 +131,14 @@ jobs:
           echo "Created ${DMG_NAME}.dmg"
           ls -la "${DMG_NAME}.dmg"
 
-      - name: Upload artifact
+      - name: Upload ZIP artifact
         uses: actions/upload-artifact@v4
         with:
-          name: obs-streamlabels-plugin-macos
-          path: build/obs-streamlabels.plugin
+          name: obs-streamlabels-plugin-macos-zip
+          path: build/obs-streamlabels-macos.zip
           retention-days: 30
 
-      - name: Upload DMG
+      - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
         with:
           name: obs-streamlabels-plugin-dmg
