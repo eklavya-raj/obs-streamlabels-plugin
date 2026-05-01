@@ -27,7 +27,7 @@ endif()
 
 # Find required packages
 find_package(LibObs REQUIRED)
-find_package(libcurl REQUIRED)
+find_package(CURL REQUIRED)
 find_package(cJSON REQUIRED)
 find_package(PkgConfig)
 if(PKG_CONFIG_FOUND)
@@ -74,13 +74,14 @@ add_library(${PROJECT_NAME} SHARED
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${LIBOBS_INCLUDE_DIRS}
+    ${CURL_INCLUDE_DIRS}
     ${LIBWEBSOCKETS_INCLUDE_DIRS}
 )
 
 # Link libraries
 target_link_libraries(${PROJECT_NAME} PRIVATE
     ${LIBOBS_LIBRARIES}
-    ${CURL_LIBRARIES}
+    CURL::libcurl
     cjson
     pthread
     ${LIBWEBSOCKETS_LIBRARIES}
