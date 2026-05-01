@@ -49,16 +49,85 @@ jobs:
           cmake -DCMAKE_BUILD_TYPE=Release -DOBS_BUILD_DIR=/tmp/obs-studio/build ..
           make -j$(sysctl -n hw.ncpu)
 
-      - name: Create package
+      - name: Create .plugin bundle
         run: |
           cd build
-          mkdir -p obs-streamlabels-plugin
-          cp libobs-streamlabels.dylib obs-streamlabels-plugin/
-          cp -r ../src/*.h obs-streamlabels-plugin/ 2>/dev/null || true
+          PLUGIN_NAME="obs-streamlabels"
+          BUNDLE="${PLUGIN_NAME}.plugin"
+          mkdir -p "${BUNDLE}/Contents/MacOS"
+          mkdir -p "${BUNDLE}/Contents/Resources/data/locale"
+
+          # Copy the built dylib
+          cp "lib${PLUGIN_NAME}.dylib" "${BUNDLE}/Contents/MacOS/"
+
+          # Copy locale data if it exists
+          if [ -d "../data/locale" ]; then
+            cp -r ../data/locale/* "${BUNDLE}/Contents/Resources/data/locale/" 2>/dev/null || true
+          fi
+
+          # Create Info.plist
+          cat > "${BUNDLE}/Contents/Info.plist" << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleDevelopmentRegion</key>
+              <string>en</string>
+              <key>CFBundleExecutable</key>
+              <string>libobs-streamlabels</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.eklavya-raj.obs-streamlabels</string>
+              <key>CFBundleInfoDictionaryVersion</key>
+              <string>6.0</string>
+              <key>CFBundleName</key>
+              <string>OBS Stream Labels</string>
+              <key>CFBundlePackageType</key>
+              <string>BNDL</string>
+              <key>CFBundleShortVersionString</key>
+              <string>1.0.0</string>
+              <key>CFBundleVersion</key>
+              <string>1.0.0</string>
+              <key>NSHumanReadableCopyright</key>
+              <string>Copyright (c) 2024</string>
+              <key>LSMinimumSystemVersion</key>
+              <string>13.0</string>
+          </dict>
+          </plist>
+          EOF
+
+          echo "Created ${BUNDLE}"
+          ls -la "${BUNDLE}/Contents/MacOS/"
+
+      - name: Create DMG
+        run: |
+          cd build
+          PLUGIN_NAME="obs-streamlabels"
+          BUNDLE="${PLUGIN_NAME}.plugin"
+          DMG_NAME="${PLUGIN_NAME}-macos"
+
+          # Create staging directory for DMG contents
+          mkdir -p "dmg-staging"
+          cp -R "${BUNDLE}" "dmg-staging/"
+
+          # Create a symlink to the standard OBS plugins folder for user convenience
+          ln -s "~/Library/Application Support/obs-studio/plugins" "dmg-staging/OBS Plugins Folder" 2>/dev/null || true
+
+          # Create the DMG
+          hdiutil create -volname "OBS Stream Labels Plugin" -srcfolder "dmg-staging" -ov -format UDZO "${DMG_NAME}.dmg"
+
+          echo "Created ${DMG_NAME}.dmg"
+          ls -la "${DMG_NAME}.dmg"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: obs-streamlabels-plugin-macos
-          path: build/obs-streamlabels-plugin/
+          path: build/obs-streamlabels.plugin
+          retention-days: 30
+
+      - name: Upload DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: obs-streamlabels-plugin-dmg
+          path: build/obs-streamlabels-macos.dmg
           retention-days: 30
