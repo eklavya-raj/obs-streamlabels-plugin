@@ -16,10 +16,15 @@ struct api_client {
     pthread_mutex_t mutex;
 };
 
+typedef struct {
+    char *data;
+    size_t size;
+} api_memory_blob;
+
 static size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp)
 {
     size_t total_size = size * nmemb;
-    struct curl_blob *blob = (struct curl_blob *)userp;
+    api_memory_blob *blob = (api_memory_blob *)userp;
     
     char *new_data = (char *)realloc(blob->data, blob->size + total_size + 1);
     if (!new_data) return 0;
@@ -100,7 +105,7 @@ static bool perform_request(api_client *client, const char *endpoint, const char
     char url[512];
     snprintf(url, sizeof(url), "%s%s", STREAMLABS_API_BASE, endpoint);
     
-    struct curl_blob blob = {0};
+    api_memory_blob blob = {nullptr, 0};
     CURL *curl = curl_easy_init();
     if (!curl) {
         pthread_mutex_unlock(&client->mutex);
