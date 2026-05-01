@@ -91,6 +91,14 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${LIBWEBSOCKETS_INCLUDE_DIRS}
 )
 
+# macOS: Add OpenSSL include path for libwebsockets
+if(OS_MACOS)
+    find_path(OPENSSL_INCLUDE_DIR openssl/ssl.h PATHS /opt/homebrew/opt/openssl/include /usr/local/opt/openssl/include)
+    if(OPENSSL_INCLUDE_DIR)
+        target_include_directories(${PROJECT_NAME} PRIVATE ${OPENSSL_INCLUDE_DIR})
+    endif()
+endif()
+
 # Link libraries
 target_link_libraries(${PROJECT_NAME} PRIVATE
     ${LIBOBS_LIBRARIES}

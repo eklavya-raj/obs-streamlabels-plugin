@@ -50,7 +50,7 @@ static void streamlabel_source_destroy(void *data)
         bfree(context->current_text);
     }
     
-    bzfree(context);
+    bfree(context);
 }
 
 static void streamlabel_source_update(void *data, obs_data_t *settings)

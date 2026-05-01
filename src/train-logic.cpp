@@ -85,7 +85,7 @@ void train_logic_destroy(train_logic_t *logic)
     pthread_mutex_unlock(&logic->mutex);
     pthread_mutex_destroy(&logic->mutex);
     
-    bzfree(logic);
+    bfree(logic);
 }
 
 void train_logic_start(train_logic_t *logic)

@@ -119,7 +119,7 @@ void websocket_client_destroy(websocket_client *client)
         bfree(client->socket_token);
     }
     
-    bzfree(client);
+    bfree(client);
 }
 
 bool websocket_client_connect(websocket_client *client)

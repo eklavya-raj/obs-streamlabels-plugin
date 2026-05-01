@@ -1,6 +1,6 @@
 #include "api-client.h"
 #include <obs.h>
-#include <util/curl.h>
+#include <curl/curl.h>
 #include <cJSON.h>
 #include <string.h>
 #include <stdlib.h>
@@ -54,7 +54,7 @@ void api_client_destroy(api_client *client)
         client->token = nullptr;
     }
     
-    bzfree(client);
+    bfree(client);
 }
 
 bool api_client_set_token(api_client *client, const char *token)

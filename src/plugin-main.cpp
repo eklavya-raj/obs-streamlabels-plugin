@@ -41,7 +41,7 @@ bool obs_module_load(void)
     plugin_data->api = api_client_create();
     if (!plugin_data->api) {
         blog(LOG_ERROR, "[Streamlabels] Failed to create API client");
-        bzfree(plugin_data);
+        bfree(plugin_data);
         return false;
     }
 
@@ -50,7 +50,7 @@ bool obs_module_load(void)
     if (!plugin_data->ws) {
         blog(LOG_ERROR, "[Streamlabels] Failed to create WebSocket client");
         api_client_destroy(plugin_data->api);
-        bzfree(plugin_data);
+        bfree(plugin_data);
         return false;
     }
 
@@ -83,7 +83,7 @@ void obs_module_unload(void)
         pthread_mutex_unlock(&plugin_data->mutex);
         pthread_mutex_destroy(&plugin_data->mutex);
 
-        bzfree(plugin_data);
+        bfree(plugin_data);
         plugin_data = nullptr;
     }
 

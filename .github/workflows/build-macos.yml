@@ -17,7 +17,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          brew install cmake cjson libwebsockets ffmpeg jansson mbedtls
+          brew install cmake cjson libwebsockets ffmpeg jansson mbedtls openssl
 
       - name: Clone OBS Studio
         run: |
