@@ -99,14 +99,15 @@ jobs:
           </plist>
           EOF
 
-          # Sign the dylib first, then sign the bundle wrapper without --deep
-          # (codesign --deep rejects bundles with files outside Contents/ like data/)
+          # Sign only the dylib (not the .plugin bundle directory).
+          # codesign rejects .plugin bundles that have files outside Contents/
+          # (like our data/ folder at the bundle root). OBS loads the dylib via
+          # dlopen(), which only requires the dylib itself to be signed on
+          # Apple Silicon. The bundle directory does not need a signature.
           codesign --sign - --force "${BUNDLE}/Contents/MacOS/lib${PLUGIN_NAME}.dylib"
-          codesign --sign - --force "${BUNDLE}"
 
           echo "Created ${BUNDLE}"
           ls -la "${BUNDLE}/Contents/MacOS/"
-          codesign -dvv "${BUNDLE}"
           codesign -dvv "${BUNDLE}/Contents/MacOS/lib${PLUGIN_NAME}.dylib"
 
       - name: Create ZIP and DMG
@@ -124,8 +125,7 @@ jobs:
           mkdir -p "dmg-staging"
           cp -a "${BUNDLE}" "dmg-staging/"
 
-          # Re-sign the copied bundle wrapper (cp can strip extended attrs/signatures)
-          codesign --sign - --force "dmg-staging/${BUNDLE}"
+          # Re-sign only the dylib (cp -a may strip extended attrs/signatures)
           codesign --sign - --force "dmg-staging/${BUNDLE}/Contents/MacOS/lib${PLUGIN_NAME}.dylib"
 
           # Create a symlink to the standard OBS plugins folder for user convenience
