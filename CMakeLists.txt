@@ -32,9 +32,10 @@ if(DEFINED OBS_BUILD_DIR)
         ${OBS_BUILD_DIR}/../libobs
         ${OBS_BUILD_DIR}/../UI/obs-frontend-api
     )
+    # macOS frameworks: binary is at Versions/A/libobs
     set(LIBOBS_LIBRARIES
-        ${OBS_BUILD_DIR}/libobs.framework/libobs
-        ${OBS_BUILD_DIR}/UI/obs-frontend-api/libobs-frontend-api.dylib
+        "${OBS_BUILD_DIR}/libobs.framework/Versions/A/libobs"
+        "${OBS_BUILD_DIR}/UI/obs-frontend-api/libobs-frontend-api.dylib"
     )
 else()
     find_package(LibObs REQUIRED)

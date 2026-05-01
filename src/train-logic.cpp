@@ -16,7 +16,8 @@ static void *timer_thread(void *data)
     while (logic->running) {
         pthread_mutex_lock(&logic->mutex);
         
-        int64_t now = os_gettime_ns() / 1000000; // Convert to milliseconds
+        int64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count();
         
         for (int i = 0; i < TRAIN_COUNT; i++) {
             train_info_t *train = &logic->trains[i];
@@ -113,7 +114,8 @@ void train_logic_add_event(train_logic_t *logic, train_type_t type, const char *
     pthread_mutex_lock(&logic->mutex);
     
     train_info_t *train = &logic->trains[type];
-    train->most_recent_event_at = os_gettime_ns() / 1000000;
+    train->most_recent_event_at = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
     train->counter++;
     
     if (name) {
@@ -164,7 +166,8 @@ const char *train_logic_get_clock(train_logic_t *logic, train_type_t type)
     if (train->most_recent_event_at == 0) {
         snprintf(clock_str, sizeof(clock_str), "0:00");
     } else {
-        int64_t now = os_gettime_ns() / 1000000;
+        int64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count();
         int64_t elapsed = now - train->most_recent_event_at;
         int duration_ms = train->duration_seconds * 1000;
         int remaining_ms = duration_ms - elapsed;
