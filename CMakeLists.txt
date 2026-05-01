@@ -30,13 +30,57 @@ if(DEFINED OBS_BUILD_DIR)
     message(STATUS "Using OBS build directory: ${OBS_BUILD_DIR}")
     set(LIBOBS_INCLUDE_DIRS
         ${OBS_BUILD_DIR}/../libobs
-        ${OBS_BUILD_DIR}/../UI/obs-frontend-api
     )
-    # macOS frameworks: binary is at Versions/A/libobs
-    set(LIBOBS_LIBRARIES
+    # Search for libobs library in multiple possible locations
+    set(OBS_LIB_CANDIDATES
         "${OBS_BUILD_DIR}/libobs.framework/Versions/A/libobs"
-        "${OBS_BUILD_DIR}/UI/obs-frontend-api/libobs-frontend-api.dylib"
+        "${OBS_BUILD_DIR}/libobs.framework/libobs"
+        "${OBS_BUILD_DIR}/libobs.framework"
+        "${OBS_BUILD_DIR}/libobs/libobs.framework/Versions/A/libobs"
+        "${OBS_BUILD_DIR}/libobs/libobs.framework/libobs"
+        "${OBS_BUILD_DIR}/libobs/Release/libobs.framework/Versions/A/libobs"
+        "${OBS_BUILD_DIR}/libobs/Debug/libobs.framework/Versions/A/libobs"
+        "${OBS_BUILD_DIR}/libobs.dylib"
+        "${OBS_BUILD_DIR}/liblibobs.dylib"
     )
+    
+    set(OBS_FOUND_LIB "")
+    foreach(candidate ${OBS_LIB_CANDIDATES})
+        if(EXISTS ${candidate})
+            set(OBS_FOUND_LIB ${candidate})
+            message(STATUS "Found libobs at: ${candidate}")
+            break()
+        endif()
+    endforeach()
+    
+    if(NOT OBS_FOUND_LIB)
+        # Try find_library which handles frameworks on macOS
+        find_library(OBS_FOUND_LIB obs libobs
+            PATHS 
+                ${OBS_BUILD_DIR}
+                ${OBS_BUILD_DIR}/libobs
+                ${OBS_BUILD_DIR}/libobs/Release
+                ${OBS_BUILD_DIR}/libobs/Debug
+                ${OBS_BUILD_DIR}/libobs/RelWithDebInfo
+            NO_DEFAULT_PATH
+            NO_CACHE
+        )
+    endif()
+    
+    if(NOT OBS_FOUND_LIB)
+        # List what exists for debugging
+        file(GLOB OBS_BUILD_GLOB 
+            "${OBS_BUILD_DIR}/libobs*" 
+            "${OBS_BUILD_DIR}/*.framework"
+            "${OBS_BUILD_DIR}/**/*.framework"
+        )
+        message(WARNING "Could not find libobs library. Searched: ${OBS_LIB_CANDIDATES}")
+        message(STATUS "Contents of ${OBS_BUILD_DIR}: ${OBS_BUILD_GLOB}")
+        # Fallback to framework directory for CMake to handle
+        set(OBS_FOUND_LIB "${OBS_BUILD_DIR}/libobs.framework")
+    endif()
+    
+    set(LIBOBS_LIBRARIES ${OBS_FOUND_LIB})
 else()
     find_package(LibObs REQUIRED)
 endif()
